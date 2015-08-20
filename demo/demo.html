@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html ng-app="demo">
+
+<head>
+  <meta charset="utf-8" />
+  <title>resourceRetryer demo</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+  <script src="https://code.angularjs.org/1.4.3/angular.js"></script>
+  <script src="https://code.angularjs.org/1.4.3/angular-resource.js"></script>
+  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <script src="demo.js"></script>
+  <script src="../source/resourceRetryer.module.js"></script>
+  <!--REMEMBER to put this over to the dist version once the build it done-->
+  <base href="/" />
+</head>
+
+<body class="container" ng-controller="demoController as vm">
+  <div class="row">
+    <div class="col-md-12">
+      <h2>{{vm.title}}</h2>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-7">
+      <div class="panel panel-default">
+        <div class="panel-heading">retry settings</div>
+        <div class="panel-body">
+          <form role="form">
+            <div class="form-group">
+              <label for="testApiUrl">test Api URL (to make a get request to with param of try to succeed on)</small></label>
+              <input id="testApiUrl" type="url" class="form-control" placeholder="test Api URL" ng-model="vm.options.testApiUrl">
+            </div>
+            <div class="form-group">
+              <label for="strategy">strategy</label>
+              <select id="strategy" class="form-control" ng-model="vm.options.strategy" ng-options="s for s in vm.strategies"></select>
+            </div>
+            <div class="form-group">
+              <label for="minWait">minWait (ms) <small>min time before next retry. In progressiveBackOff strategy also used as initial retry interval</small></label>
+              <input id="minWait" type="number" class="form-control" placeholder="min wait" min="0" ng-model="vm.options.minWait">
+            </div>
+            <div class="form-group">
+              <label for="maxWait">maxWait (ms) <small>max time before next retry with randomizedRetry only</small></label>
+              <input id="maxWait" type="number" class="form-control" placeholder="max wait" min="0" ng-model="vm.options.maxWait">
+            </div>
+            <div class="form-group">
+              <label for="retries">retries <small>Number of retry attempts to make</small></label>
+              <input id="retries" type="number" class="form-control" placeholder="retries" min="0" ng-model="vm.options.retries">
+            </div>
+            <div class="form-group">
+              <label for="base">base <small>base for progressiveBackOff strategy only</small></label>
+              <input id="base" type="number" class="form-control" placeholder="base" min="0" ng-model="vm.options.base">
+            </div>
+            <div class="form-group">
+              <label for="startSequenceFrom">startSequenceFrom <small>starting point for the back off server eg 16 > 16,32...</small></label>
+              <input id="startSequenceFrom" type="number" class="form-control" placeholder="start sequence from" min="0" ng-model="vm.options.startSequenceFrom">
+            </div>            
+          </form>
+        </div>
+      </div>
+      <div class="well center-block">
+        <button class="btn btn-primary btn-lg btn-block" ng-click="vm.go()" ng-disabled="vm.status.busy">go</button>
+      </div>
+    </div>
+    <div class="col-md-5">
+      <div class="panel panel-default">
+        <div class="panel-heading">results</div>
+        <div class="panel-body">
+          <ul class="list-unstyled">
+            <li ng-repeat="result in vm.results">{{result.message}}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
