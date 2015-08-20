@@ -2,10 +2,11 @@
   "name": "resource-retryer",
   "version": "1.0.0",
   "authors": [
-    "JayChase <JonathanChase@outlook.com>"
+    "JayChase <JonathanChase@outlook.com>",
+    "Useful Software Solutions Ltd"
   ],
   "description": "wrapper for ngResource to allow retries",
-  "main": "./angular-resource-retryer.js",
+  "main": "./dist/resource-retryer.js",
   "moduleType": [
     "amd"
   ],
@@ -15,11 +16,15 @@
     "node_modules",
     "bower_components",
     "test",
-    "tests"
+    "tests",
+    "./settings",
+    "source"
   ],
   "dependencies": {
-    "angular": "~1.4.3",
-    "angular-resource": "~1.4.3",
-    "angular-mocks": "~1.4.3"
+    "angular": "~1.4.4",
+    "angular-resource": "~1.4.4"    
+  },
+  "devDependencies": {
+    "angular-mocks": "~1.4.4"
   }
 }
