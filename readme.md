@@ -6,13 +6,14 @@ This module decorates the AngularJS [$resource](https://docs.angularjs.org/api/n
 
 ###installation
 
-bower: coming soon
+**bower:** 
+```
+bower install  resource-retryer --save
+```
 
-NPM: coming soon
+Once installed add the script reference and then add a dependendency to the module to make sure it gets loaded.
 
-nuget: coming soon
-
-Once installed just add a dependendency to the module to make sure it gets loaded.
+(NPM and nuget packages coming soon)
  
 ```
 var app = angular.module('demo', ['resourceRetryer']);
@@ -65,4 +66,4 @@ To run the server open a command prompt under the demo directory and run:
 	node testServer
 ```
 
-, then open demo.html in a browser to run the demo client application.
+, then open **demo.html** in a browser to run the demo client application.
