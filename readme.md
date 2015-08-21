@@ -12,12 +12,12 @@ bower install  resource-retryer --save
 ```
 
 Once installed add the script reference and then add a dependendency to the module to make sure it gets loaded.
-
-(NPM and nuget packages coming soon)
  
 ```
 var app = angular.module('demo', ['resourceRetryer']);
 ``` 
+
+(NPM and nuget packages coming soon)
 
 ###configuration
 
