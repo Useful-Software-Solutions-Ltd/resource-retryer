@@ -1,11 +1,15 @@
 {
   "name": "resource-retryer",
   "version": "1.0.0",
+  "description": "Easily retry failed REST API calls with $resource in AngularJS",
   "authors": [
     "JayChase <JonathanChase@outlook.com>",
     "Useful Software Solutions Ltd"
   ],
-  "description": "wrapper for ngResource to allow retries",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Useful-Software-Solutions-Ltd/resource-retryer.git"
+  },
   "main": "./dist/resource-retryer.js",
   "moduleType": [
     "amd"
@@ -17,12 +21,17 @@
     "bower_components",
     "test",
     "tests",
-    "./settings",
-    "source"
+    "./.settings",
+    "source",
+    "demo",
+    "tsd.json",
+    "package.json",
+    "karma.conf.js",
+    "gulpfile.js"
   ],
   "dependencies": {
     "angular": "~1.4.4",
-    "angular-resource": "~1.4.4"    
+    "angular-resource": "~1.4.4"
   },
   "devDependencies": {
     "angular-mocks": "~1.4.4"

@@ -12,6 +12,12 @@ NPM: coming soon
 
 nuget: coming soon
 
+Once installed just add a dependendency to the module to make sure it gets loaded.
+ 
+```
+var app = angular.module('demo', ['resourceRetryer']);
+``` 
+
 ###configuration
 
 When calling $resource if you pass in an options.retry configuration object the returned resource will have it's actions (get, save,query, remove, delete and any custom actions) wrapped in a retryer function.
