@@ -52,46 +52,126 @@
 
             resource[actionName] = actionWrapper;
 
-            function actionWrapper() {
+            function actionWrapper(a1, a2, a3, a4) {
                 //this wrappper stores the arguments
                 var args = arguments,
-                    retryPromise = $q(function (resolve, reject) {
-                        retryer(resolve, reject);
-                    }),
+                    deferred = $q.defer(),                  
                     returnObject = {
-                    '$promise': retryPromise,
+                    '$promise': deferred.promise,
                     '$resolved': false
                 };
+                
+                if(args.length > 0){
+                    retryer();
+                }
                                  
                 return returnObject; 
 
-                function retryer(resolve, reject) {
-                    var delay = calculateDelay(retryOptions, retried);
-
-                    originalAction.apply(resource, args)
+                function retryer() {
+                    var delay = calculateDelay(retryOptions, retried),
+                        params = getArgs(actionName, args);
+                    
+                    originalAction.apply(resource, params.actionArgs)
                         .$promise
                         .then(function (result) {
-                            returnObject.$resolved = true;                            
-                            resolve(result);
+                            returnObject.$resolved = true;
+                            angular.extend(returnObject, result);
+
+                            deferred.resolve(result);
+
+                            if (angular.isFunction(params.onResolve)) {
+                                params.onResolve.apply(resource, returnObject);
+                            }
                         }, function (result) {
-                            returnObject.$resolved = true;                            
-                            if (retried < retryOptions.retries) {                                                                
-                                retried = retried + 1;                                
-                                
+                            returnObject.$resolved = true;
+
+                            if (retried < retryOptions.retries) {
+                                retried = retried + 1;
+
                                 if (angular.isFunction(retryOptions.retryCallback)) {
                                     retryOptions.retryCallback(result, retried);
                                 }
-                                
+
                                 $timeout(function () {
-                                    retryer(resolve,reject);
+                                    retryer();
                                 }, delay);
                             } else {
-                                reject(result);
+                                angular.extend(returnObject, result);
+                                deferred.reject(returnObject);
+
+                                if (angular.isFunction(params.onResolve)) {
+                                    params.onResolve.apply(resource, returnObject);
+                                }
                             }
                         });
-                }                
+                }
             }
         }
+    }
+
+    function getActionArgs(args) {
+        var actionArgs = [];
+
+        angular.forEach(args, function (arg) {
+            if (!angular.isFunction(arg)) {
+                actionArgs.push(arg);
+            }
+        });        
+        
+        return actionArgs;
+    }
+    
+    function getArgs(actionName, actionArgs ){
+        var hasBody = /^(POST|PUT|PATCH)$/i.test(actionName), 
+        args = {
+            params: {},
+            data: null,
+            error: null,
+            success: null            
+        };
+        
+        switch (actionArgs.length) {
+              case 4:
+                args.error = actionArgs[3];
+                args.success = actionArgs[2];
+              //fallthrough
+              case 3:
+              case 2:
+                if (angular.isFunction(actionArgs[1])) {
+                  if (angular.isFunction(actionArgs[0])) {
+                    args.success = actionArgs[0];
+                    args.error = actionArgs[1];
+                    break;
+                  }
+
+                  args.success = actionArgs[1];
+                  args.error = actionArgs[2];
+                  //fallthrough
+                } else {
+                  args.params = actionArgs[0];
+                  args.data = actionArgs[1];
+                  args.success = actionArgs[2];
+                  break;
+                }
+              case 1:
+                if (angular.isFunction(actionArgs[0])) args.success = actionArgs[0];
+                else if (hasBody) args.data = actionArgs[0];
+                else args.params = actionArgs[0];
+                break;
+              case 0: break;
+              default:
+                throw { code: 'badargs',
+                  message: "Expected up to 4 arguments [params, data, success, error], got {0} arguments" + actionArgs.length};
+            }
+            
+            return {
+                actionArgs : {
+                    params: args.params,
+                    data: args.data
+                },
+                onResolve: args.success,
+                onReject: args.error
+            };
     }
 
     function calculateDelay(retryOptions, retried) {
