@@ -72,11 +72,14 @@
                         .$promise
                         .then(function (result) {
                             returnObject.$resolved = true;
+                            
+                            //TODO need to go through and wrap/replace all $action functions on the return object with retryers
                             angular.extend(returnObject, result);
 
                             deferred.resolve(returnObject);
 
                             if (args.onResolve) {
+                                //TODO: need to be calling these with the $http header getter function as well
                                 args.onResolve.apply(resource, [returnObject]);
                             }
                         }, function (result) {
@@ -97,6 +100,7 @@
                                 deferred.reject(returnObject);
 
                                 if (args.onReject) {
+                                    //TODO: need to be calling these with the $http header getter function as well
                                     args.onReject.apply(resource, [returnObject]);
                                 }
                             }
