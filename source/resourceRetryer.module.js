@@ -76,10 +76,17 @@
                         //TODO need to go through and wrap/replace all $action functions on the return object with retryers
                         angular.extend(returnObject, result);
 
+                        for (var property in result) {
+                            if(property.charAt(0) ===  '$') {
+                                returnObject[property] = result[property];
+                                addWrapper(returnObject,property,retryOptions);
+                            }                            
+                        }
+                                                
+
                         deferred.resolve(returnObject);
 
                         if (args.onResolve) {
-                            //TODO: need to be calling these with the $http header getter function as well
                             args.onResolve.apply(resource, [returnObject, responseHeaders]);
                         }
                     }
@@ -101,8 +108,7 @@
                             angular.extend(returnObject, result);
                             deferred.reject(returnObject);
 
-                            if (args.onReject) {
-                                //TODO: need to be calling these with the $http header getter function as well
+                            if (args.onReject) {                                
                                 args.onReject.apply(resource, [returnObject, responseHeaders]);
                             }
                         }
