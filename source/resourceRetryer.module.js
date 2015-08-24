@@ -68,43 +68,45 @@
                 function retryer() {
                     var delay = calculateDelay(retryOptions, retried);
                     
-                    originalAction.apply(resource, args.args)
-                        .$promise
-                        .then(function (result) {
-                            returnObject.$resolved = true;
+                    originalAction.apply(resource, args.args.concat([success,fail]));
+                    
+                    function success(result, responseHeaders) {
+                        returnObject.$resolved = true;
                             
-                            //TODO need to go through and wrap/replace all $action functions on the return object with retryers
+                        //TODO need to go through and wrap/replace all $action functions on the return object with retryers
+                        angular.extend(returnObject, result);
+
+                        deferred.resolve(returnObject);
+
+                        if (args.onResolve) {
+                            //TODO: need to be calling these with the $http header getter function as well
+                            args.onResolve.apply(resource, [returnObject, responseHeaders]);
+                        }
+                    }
+                    
+                    function fail(result, responseHeaders) {
+                        returnObject.$resolved = true;
+
+                        if (retried < retryOptions.retries) {
+                            retried = retried + 1;
+
+                            if (angular.isFunction(retryOptions.retryCallback)) {
+                                retryOptions.retryCallback(result, retried);
+                            }
+
+                            $timeout(function () {
+                                retryer();
+                            }, delay);
+                        } else {
                             angular.extend(returnObject, result);
+                            deferred.reject(returnObject);
 
-                            deferred.resolve(returnObject);
-
-                            if (args.onResolve) {
+                            if (args.onReject) {
                                 //TODO: need to be calling these with the $http header getter function as well
-                                args.onResolve.apply(resource, [returnObject]);
+                                args.onReject.apply(resource, [returnObject, responseHeaders]);
                             }
-                        }, function (result) {
-                            returnObject.$resolved = true;
-
-                            if (retried < retryOptions.retries) {
-                                retried = retried + 1;
-
-                                if (angular.isFunction(retryOptions.retryCallback)) {
-                                    retryOptions.retryCallback(result, retried);
-                                }
-
-                                $timeout(function () {
-                                    retryer();
-                                }, delay);
-                            } else {
-                                angular.extend(returnObject, result);
-                                deferred.reject(returnObject);
-
-                                if (args.onReject) {
-                                    //TODO: need to be calling these with the $http header getter function as well
-                                    args.onReject.apply(resource, [returnObject]);
-                                }
-                            }
-                        });
+                        }
+                    }                                                             
                 }
             }
         }
