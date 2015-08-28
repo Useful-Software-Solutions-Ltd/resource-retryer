@@ -38,14 +38,6 @@ function demoController($resource) {
     vm.status.busy = true;
     vm.results.length = 0;
 
-    /* now create a tiny server that somehow counts the calls in and can fake n responses before a success??
-      guessing some sort of state (mongo or file) 
-    */
-    
-    /*
-      then check out how the reponse gets wrapped result.$get < $get.$promise needs the same wrapper applied
-    */
-    
     log("calling " + vm.options.testApiUrl);
 
     resource

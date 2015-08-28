@@ -56,10 +56,7 @@
 
         function addWrapper(resource, actionName, retryOptions) {
             var originalAction = resource[actionName],
-                retried = 0;
-
-            //console.log("whappper " + actionName);                    
-            //console.log(resource[actionName] === actionWrapper);                    
+                retried = 0;              
 
             if(resource.hasOwnProperty(actionName)){
                 resource[actionName] = actionWrapper;
@@ -82,6 +79,8 @@
                         result;
                     
                     result = originalAction.apply(resource, args.args.concat([success,fail]));
+                    
+                    //this needs to handle result being an array
                     if(actionName.charAt(0) === '$'){
                         returnObject = deferred.promise;    
                     } else if(!returnObject) {

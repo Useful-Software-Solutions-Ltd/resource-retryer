@@ -7,6 +7,7 @@ describe('resourceRetryer', function () {
 		$timeout,
 		mockTimeout,
 		getRequestHandler,
+		queryRequestHandler,
 		postRequestHandler,
 		delays,
 		retryOptions,
@@ -32,7 +33,7 @@ describe('resourceRetryer', function () {
 			base: 2,
 			startSequenceAfter: 4
 		};
-		respondSuccessAfter = 5;
+		respondSuccessAfter = 1;
 
 		mockTimeout = function (fn, delay, invokeApply, pass) {
 			delays.push(delay);
@@ -52,6 +53,16 @@ describe('resourceRetryer', function () {
 				requestCounter = requestCounter + 1;
 				if (requestCounter >= respondSuccessAfter) {
 					return [200, response];
+				} else {
+					return [401];
+				}
+												});
+
+		queryRequestHandler = $httpBackend.when('GET', 'api/test?query=1')
+			.respond(function (method, url, data, headers) {
+				requestCounter = requestCounter + 1;
+				if (requestCounter >= respondSuccessAfter) {
+					return [200, [response, response, response, response]];
 				} else {
 					return [401];
 				}
@@ -78,7 +89,7 @@ describe('resourceRetryer', function () {
 			}).toThrow();
 		}));
 
-		it('should call retryOptions.retryCallback on each retry if the property has been set as a function', inject(function ($resource) {
+		/*it('should call retryOptions.retryCallback on each retry if the property has been set as a function', inject(function ($resource) {
 			var callback = sinon.spy();
 
 			retryOptions.retryCallback = callback;
@@ -168,7 +179,7 @@ describe('resourceRetryer', function () {
 			expect(resolved).toBe(true);
 		}));
 
-		it('should update initial returned object once promise has been resolved', inject(function ($resource) {
+		it('should update initial returned resource with final result once promise has been resolved', inject(function ($resource) {
 			var Resource = $resource('api/test', null, null, { retry: retryOptions });
 
 			var result = Resource.get(function (result) {
@@ -178,6 +189,18 @@ describe('resourceRetryer', function () {
 			$httpBackend.flush();
 
 			expect(result.message).toBe("todo bien");
+		}));
+		
+		it('should update initial returned resource with final result once promise has been resolved when isArray = true', inject(function ($resource) {
+			var Resource = $resource('api/test', null, null, { retry: retryOptions });
+
+			var result = Resource.get(function (result) {
+
+			});
+
+			$httpBackend.flush();
+
+			expect(false).toBe(true);
 		}));
 
 		it('should call action with supplied body', inject(function ($resource) {
@@ -246,14 +269,59 @@ describe('resourceRetryer', function () {
 				});
 			});
 
-
-
 			$httpBackend.flush();
 
 			expect(results).toEqual([5, 5]);
+		}));*/
+		
+		it('should when isArray = true, on success return an array of resources which also have retry wrapped actions', inject(function ($resource) {
+			//get a result an then check result.$get retries as well
+			var Resource = $resource('api/test', null, null, { retry: retryOptions }),
+				results = [];
+
+			var result = Resource.get({}, function (a, b) {
+				results.push(requestCounter);
+				requestCounter = 0;
+
+				a.$get({}, function (res) {
+					results.push(requestCounter);
+					requestCounter = 0;
+				});
+			});
+
+			$httpBackend.flush();
+
+			expect(results).toEqual(false);
 		}));
 
-		describe('if strategy is randomizedRetry', function () {
+		it('should return array when isArray=true with direct call on $promise', inject(function ($resource) {
+			//get a result an then check result.$get retries as well
+			var Resource = $resource('api/test', null, null, { retry: retryOptions }),
+				result;
+
+			Resource.query({ query: 1 }).$promise.then(function (res) {
+				result = res;
+			});
+
+			$httpBackend.flush();
+
+			expect(result.length).toEqual(4);
+		}));
+
+		it('should return array when isArray=true with direct call on $promise', inject(function ($resource) {
+			//get a result an then check result.$get retries as well
+			var Resource = $resource('api/test', null, null, { retry: retryOptions });				
+
+			var result = Resource.query({ query: 1 }, function (a, b) {
+								
+			});
+
+			$httpBackend.flush();
+
+			expect(result.length).toEqual(4);
+		}));
+
+		/*describe('if strategy is randomizedRetry', function () {
 			it('should not wait more the retryOptions.maxWait (500ms) before retryring', inject(function ($resource) {
 				var resource = $resource('api/test', null, null, { retry: retryOptions });
 
@@ -358,6 +426,6 @@ describe('resourceRetryer', function () {
 
 				expect(delays).toEqual([50, 50, 50, 50]);
 			}));
-		});
+		});*/
 	});
 });

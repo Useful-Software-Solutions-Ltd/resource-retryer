@@ -1,5 +1,5 @@
 {
-  "name": "resource-retryer",
+  "name": "angular-resource-retryer",
   "version": "1.0.0",
   "description": "decorator for $resource to allow retries",
   "main": "index.js",
