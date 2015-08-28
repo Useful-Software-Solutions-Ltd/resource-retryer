@@ -32,58 +32,83 @@
                     allActions = actions ? defaultActions.concat(Object.getOwnPropertyNames(actions)) : defaultActions;
 
                 //use the list of action names allActions to go through the resource properties and wrap them
-                wrapActions(resource, allActions, retryOptions);
+                wrapActions(resource, allActions, retryOptions);                                
                 
                 return resource;
             } else {
                 return $delegate(url, paramDefaults, actions, options);
             }
         }
-        
-        function wrapActions(resource, allActions, retryOptions){
-            allActions.forEach(function(action){
-                addWrapper(resource,action,retryOptions);
-            });
+
+        function wrapActions(resource, allActions, retryOptions) {
+            if (allActions) {
+                allActions.forEach(function (action) {                                                            
+                    addWrapper(resource, action, retryOptions);
+                });
+            } else {
+                for (var property in resource) {
+                    if(!resource.hasOwnProperty(property) && property.charAt(0) === '$'){
+                        addWrapper(resource, property, retryOptions);    
+                    }
+                }                                
+            }
         }
 
         function addWrapper(resource, actionName, retryOptions) {
             var originalAction = resource[actionName],
                 retried = 0;
 
-            resource[actionName] = actionWrapper;
+            //console.log("whappper " + actionName);                    
+            //console.log(resource[actionName] === actionWrapper);                    
 
+            if(resource.hasOwnProperty(actionName)){
+                resource[actionName] = actionWrapper;
+            } else {
+                Object.getPrototypeOf(resource)[actionName] = actionWrapper;
+            }
+            
             function actionWrapper(a1, a2, a3, a4) {
                 //this wrappper stores the arguments
                 var args = getArgs(actionName, arguments),
                     deferred = $q.defer(),                  
-                    returnObject = {
-                    '$promise': deferred.promise,
-                    '$resolved': false
-                };
+                    returnObject;
                 
                 retryer();
                                  
                 return returnObject; 
 
                 function retryer() {
-                    var delay = calculateDelay(retryOptions, retried);
+                    var delay = calculateDelay(retryOptions, retried),
+                        result;
                     
-                    originalAction.apply(resource, args.args.concat([success,fail]));
+                    result = originalAction.apply(resource, args.args.concat([success,fail]));
+                    //TODO: this is causing promise exception looks like actionWrapper is getting double called each time with no returnObject???!!!!
+                    //OK I know what this is on the reolve the result can already have wrapped actions then wrapper is called and result is null again so same
+                    //actions get re wrapped. need to second check in to see is $actions are already actionWrapper functions
+                    //pretty sure this is just going to be putting a wrapped flag on the result
+                    //hmm not working change the verb of the second call to make it easier to debug but def results with actionwrappers are getting double wrapped
+                    
+                    //here we just need to know if the function is a fresh 1. res.get or 2. an already resolved $get
+                    //1. return the new object like below (then again with the results when resolve)
+                    //2. just return the promise (then the whole resource when done)
+                    
+                    if(actionName.charAt(0) === '$'){
+                        returnObject = deferred.promise;    
+                    } else if(!returnObject) {
+                        wrapActions(result,null,retryOptions);
+                        result.$promise = deferred.promise;
+                        returnObject = result;
+                    }
                     
                     function success(result, responseHeaders) {
-                        returnObject.$resolved = true;
-                            
-                        //TODO need to go through and wrap/replace all $action functions on the return object with retryers
-                        angular.extend(returnObject, result);
-
-                        for (var property in result) {
-                            if(property.charAt(0) ===  '$') {
-                                returnObject[property] = result[property];
-                                addWrapper(returnObject,property,retryOptions);
-                            }                            
-                        }
-                                                
-
+                        //returnObject = result;
+                        if (result !== returnObject) {                            
+                            for (var prop in result) {                                
+                                    returnObject[prop] = result[prop];                                
+                            }
+                        } 
+                         
+                                      
                         deferred.resolve(returnObject);
 
                         if (args.onResolve) {
@@ -92,8 +117,6 @@
                     }
                     
                     function fail(result, responseHeaders) {
-                        returnObject.$resolved = true;
-
                         if (retried < retryOptions.retries) {
                             retried = retried + 1;
 
@@ -105,7 +128,7 @@
                                 retryer();
                             }, delay);
                         } else {
-                            angular.extend(returnObject, result);
+                            angular.copy(result,returnObject);   
                             deferred.reject(returnObject);
 
                             if (args.onReject) {                                
