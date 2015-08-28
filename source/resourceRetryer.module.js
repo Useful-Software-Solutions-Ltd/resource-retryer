@@ -82,16 +82,6 @@
                         result;
                     
                     result = originalAction.apply(resource, args.args.concat([success,fail]));
-                    //TODO: this is causing promise exception looks like actionWrapper is getting double called each time with no returnObject???!!!!
-                    //OK I know what this is on the reolve the result can already have wrapped actions then wrapper is called and result is null again so same
-                    //actions get re wrapped. need to second check in to see is $actions are already actionWrapper functions
-                    //pretty sure this is just going to be putting a wrapped flag on the result
-                    //hmm not working change the verb of the second call to make it easier to debug but def results with actionwrappers are getting double wrapped
-                    
-                    //here we just need to know if the function is a fresh 1. res.get or 2. an already resolved $get
-                    //1. return the new object like below (then again with the results when resolve)
-                    //2. just return the promise (then the whole resource when done)
-                    
                     if(actionName.charAt(0) === '$'){
                         returnObject = deferred.promise;    
                     } else if(!returnObject) {
@@ -100,9 +90,9 @@
                         returnObject = result;
                     }
                     
-                    function success(result, responseHeaders) {
-                        //returnObject = result;
-                        if (result !== returnObject) {                            
+                    function success(result, responseHeaders) {                       
+                        if (result !== returnObject) {   
+                            //deliberately copying prototype as well                         
                             for (var prop in result) {                                
                                     returnObject[prop] = result[prop];                                
                             }
