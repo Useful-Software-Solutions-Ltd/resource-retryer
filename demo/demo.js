@@ -13,6 +13,7 @@ function demoController($resource) {
   };
   vm.results = [];
   vm.strategies = ["randomizedRetry", "progressiveBackOff"];
+  vm.callCount = 0;
   vm.options = {
     testApiUrl: "http://localhost:8989/api/test/5",
     strategy: vm.strategies[0],
@@ -20,10 +21,11 @@ function demoController($resource) {
     maxWait: 500,
     retries: 5,
     base: 2,
-    startSequenceFrom: 1,
-    retryCallback: function (result, retryCount) {
-      log("try" + retryCount + " failed");
-    }
+    startSequenceFrom: 1,    
+    retryCallback: function(result, retryCount, delay){
+      log("try" + retryCount + ". Wait until net try = " + delay);
+      vm.callCount = retryCount;
+    }   
   };
   vm.go = go;
 
@@ -32,9 +34,9 @@ function demoController($resource) {
   function activate() { }
 
   function go() {
-    var resource = $resource(vm.options.testApiUrl, null, null, { retry: vm.options }),
-      callCount = 0;
-
+    var resource = $resource(vm.options.testApiUrl, null, null, { retry: vm.options });
+        
+    vm.callCount = 0;
     vm.status.busy = true;
     vm.results.length = 0;
 
@@ -44,23 +46,12 @@ function demoController($resource) {
       .get()
       .$promise
       .then(function (result) {
-        log("succeeded on try " + result.requestCount + " . Result: " + JSON.stringify(result));
+        log("succeeded on try " + vm.callCount + " . Result: " + JSON.stringify(result));
         vm.status.busy = false;
       },
         function (result) {          
-          log("failed on try " + result.data.requestCount + " . Result: " + JSON.stringify(result));
-          
-          //tell the test server to reset the request count
-          resource.save()
-                    .$promise
-                    .then(function(){
-                      log("reset test server request counter");
-                      vm.status.busy = false;
-                    }, function(result){
-                      log("reset test server request counter failed " + JSON.stringify(result));
-                      vm.status.busy = false;
-                    });
-                    
+          log("failed on try " + vm.callCount  + " . Result: " + JSON.stringify(result));
+          vm.status.busy = false;       
         });
   }
   

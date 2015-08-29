@@ -32,79 +32,104 @@
                     allActions = actions ? defaultActions.concat(Object.getOwnPropertyNames(actions)) : defaultActions;
 
                 //use the list of action names allActions to go through the resource properties and wrap them
-                wrapActions(resource, allActions, retryOptions);
+                wrapActions(resource, allActions, retryOptions);                                
                 
                 return resource;
             } else {
                 return $delegate(url, paramDefaults, actions, options);
             }
         }
-        
-        function wrapActions(resource, allActions, retryOptions){
-            allActions.forEach(function(action){
-                addWrapper(resource,action,retryOptions);
-            });
+
+        function wrapActions(resource, allActions, retryOptions) {
+            if (allActions) {
+                allActions.forEach(function (action) {                                                            
+                    addWrapper(resource, action, retryOptions);
+                });
+            } else {
+                for (var property in resource) {
+                    if(!resource.hasOwnProperty(property) && property.charAt(0) === '$'){
+                        addWrapper(resource, property, retryOptions);    
+                    }
+                }                                
+            }
         }
 
         function addWrapper(resource, actionName, retryOptions) {
             var originalAction = resource[actionName],
-                retried = 0;
+                retried = 0;              
 
-            resource[actionName] = actionWrapper;
-
+            if(resource.hasOwnProperty(actionName)){
+                resource[actionName] = actionWrapper;
+            } else {
+                Object.getPrototypeOf(resource)[actionName] = actionWrapper;
+            }
+            
             function actionWrapper(a1, a2, a3, a4) {
                 //this wrappper stores the arguments
                 var args = getArgs(actionName, arguments),
                     deferred = $q.defer(),                  
-                    returnObject = {
-                    '$promise': deferred.promise,
-                    '$resolved': false
-                };
+                    returnObject;
                 
                 retryer();
                                  
                 return returnObject; 
 
                 function retryer() {
-                    var delay = calculateDelay(retryOptions, retried);
+                    var delay = calculateDelay(retryOptions, retried),
+                        result;
                     
-                    originalAction.apply(resource, args.args)
-                        .$promise
-                        .then(function (result) {
-                            returnObject.$resolved = true;
-                            
-                            //TODO need to go through and wrap/replace all $action functions on the return object with retryers
-                            angular.extend(returnObject, result);
-
-                            deferred.resolve(returnObject);
-
-                            if (args.onResolve) {
-                                //TODO: need to be calling these with the $http header getter function as well
-                                args.onResolve.apply(resource, [returnObject]);
+                    result = originalAction.apply(resource, args.args.concat([success,fail]));
+                    
+                    //this might not be easy of result isarray just return the array      
+                    //if array all each result will have it's own resource so they all need to be wrappped individually              
+                    if(actionName.charAt(0) === '$'){
+                        returnObject = deferred.promise;    
+                    } else if(!returnObject) {
+                        wrapActions(result,null,retryOptions);
+                        result.$promise = deferred.promise;
+                        returnObject = result;
+                    }
+                    
+                    function success(result, responseHeaders) {      
+                        //this needs to handle result being an array
+                        if (angular.isArray(result)) {
+                            result.forEach(function (resultItem, i) {
+                                wrapActions(resultItem, null, retryOptions);
+                                returnObject.push(resultItem);                               
+                            })
+                        } else if (result !== returnObject) {
+                            for (var prop in result) {
+                                returnObject[prop] = result[prop];
                             }
-                        }, function (result) {
-                            returnObject.$resolved = true;
+                        }
+                                                               
+                        deferred.resolve(returnObject);
 
-                            if (retried < retryOptions.retries) {
-                                retried = retried + 1;
+                        if (args.onResolve) {
+                            args.onResolve.apply(resource, [returnObject, responseHeaders]);
+                        }
+                    }
+                    
+                    function fail(result, responseHeaders) {
+                        if (retried < retryOptions.retries) {
+                            retried = retried + 1;
 
-                                if (angular.isFunction(retryOptions.retryCallback)) {
-                                    retryOptions.retryCallback(result, retried);
-                                }
-
-                                $timeout(function () {
-                                    retryer();
-                                }, delay);
-                            } else {
-                                angular.extend(returnObject, result);
-                                deferred.reject(returnObject);
-
-                                if (args.onReject) {
-                                    //TODO: need to be calling these with the $http header getter function as well
-                                    args.onReject.apply(resource, [returnObject]);
-                                }
+                            if (angular.isFunction(retryOptions.retryCallback)) {
+                                retryOptions.retryCallback(result, retried, delay);
                             }
-                        });
+
+                            $timeout(function () {
+                                retryer();
+                            }, delay);
+                        } else {
+                            angular.copy(result,returnObject);   
+                            deferred.reject(returnObject);
+
+                            if (args.onReject) {                                
+                                args.onReject.apply(resource, [returnObject, responseHeaders]);
+                            }
+                        }
+                    }                                                             
                 }
             }
         }

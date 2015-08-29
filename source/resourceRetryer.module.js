@@ -80,7 +80,8 @@
                     
                     result = originalAction.apply(resource, args.args.concat([success,fail]));
                     
-                    //this needs to handle result being an array
+                    //this might not be easy of result isarray just return the array      
+                    //if array all each result will have it's own resource so they all need to be wrappped individually              
                     if(actionName.charAt(0) === '$'){
                         returnObject = deferred.promise;    
                     } else if(!returnObject) {
@@ -89,15 +90,19 @@
                         returnObject = result;
                     }
                     
-                    function success(result, responseHeaders) {                       
-                        if (result !== returnObject) {   
-                            //deliberately copying prototype as well                         
-                            for (var prop in result) {                                
-                                    returnObject[prop] = result[prop];                                
+                    function success(result, responseHeaders) {      
+                        //this needs to handle result being an array
+                        if (angular.isArray(result)) {
+                            result.forEach(function (resultItem, i) {
+                                wrapActions(resultItem, null, retryOptions);
+                                returnObject.push(resultItem);                               
+                            })
+                        } else if (result !== returnObject) {
+                            for (var prop in result) {
+                                returnObject[prop] = result[prop];
                             }
-                        } 
-                         
-                                      
+                        }
+                                                               
                         deferred.resolve(returnObject);
 
                         if (args.onResolve) {
@@ -110,7 +115,7 @@
                             retried = retried + 1;
 
                             if (angular.isFunction(retryOptions.retryCallback)) {
-                                retryOptions.retryCallback(result, retried);
+                                retryOptions.retryCallback(result, retried, delay);
                             }
 
                             $timeout(function () {
