@@ -17,6 +17,47 @@ var app = angular.module('demo', ['resourceRetryer']);
 
 (NPM and nuget packages coming soon)
 
+###usage
+
+To enable retrying when calling the $resource factory add a object named retry to the options object.
+
+```
+var retryOptions ={
+	minWait: 20,
+    maxWait: 100,
+    retries: 3
+};
+
+var User = $resource('/user/:userId', {userId:'@id'},{ retry: retryOptions});
+```
+
+With that done all the resource actions will get wrapped with the retryer the $resource service can be used as normal.
+
+####callback syntax
+
+```
+var User = $resource('/user/:userId', {userId:'@id'});
+
+User.get({userId:123}, function(u, getResponseHeaders){
+  u.abc = true;
+  u.$save(function(u, putResponseHeaders) {
+    //u => saved user object
+    //putResponseHeaders => $http header getter
+  });
+});
+```
+
+####promise syntax
+
+```
+var User = $resource('/user/:userId', {userId:'@id'});
+
+User.get({userId:123})
+    .$promise.then(function(user) {
+      $scope.user = user;
+    });
+```
+
 ###configuration
 
 When calling $resource if you pass in an options.retry configuration object the returned resource will have it's actions (get, save,query, remove, delete and any custom actions) wrapped in a retryer function.
