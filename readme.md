@@ -33,7 +33,7 @@ var User = $resource('/user/:userId', {userId:'@id'},{ retry: retryOptions});
 
 With that done all the resource actions will get wrapped with the retryer the $resource service can be used as normal.
 
-####callback syntax
+**callback syntax**
 
 ```
 var User = $resource('/user/:userId', {userId:'@id'});
@@ -47,7 +47,7 @@ User.get({userId:123}, function(u, getResponseHeaders){
 });
 ```
 
-####promise syntax
+**promise syntax**
 
 ```
 var User = $resource('/user/:userId', {userId:'@id'});
