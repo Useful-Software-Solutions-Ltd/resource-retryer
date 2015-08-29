@@ -8,7 +8,7 @@ This module decorates the AngularJS [$resource](https://docs.angularjs.org/api/n
 
 **bower:** 
 ```
-bower install  resource-retryer --save
+bower install  angular-resource-retryer --save
 ```
 
 Once installed add the script reference and then add a dependendency to the module to make sure it gets loaded.
@@ -53,12 +53,11 @@ customs: use a custom function (options.retry.delayCalculator) to calculate the 
 |	base	|	integer	|	used with **progressiveBackOff** strategy only set the base for the exponential sequence (eg 2 would give a sequence of 1,2,4,8,16,32,64...)	|
 |	startSequenceAfter	|	integer	|	used with **progressiveBackOff** strategy only set the starting point for the sequence (eg value of 4 with base 2 would mean sequence starts at 8	|
 |	delayCalculator	| function(options, retryCount)	|	used with **custom** strategy only. Custom function that will be called to calculate the wait time between retries. Should return an integer between the minWait and maxWait times	|
+|	retryCallback	| function(result, retries, delay) | function called after every failure before the next try. Passes the result a count of the number of retries already made and the delay until the next try	|
     		
-
 ###running the demo
 
 Under the demo folder in the repo is a Node.js test server and a simple client. 
-
 
 To run the server open a command prompt under the demo directory and run:
 
