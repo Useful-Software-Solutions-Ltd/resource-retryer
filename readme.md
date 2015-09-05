@@ -1,6 +1,6 @@
 ##resource-retryer: retry failed REST API calls automatically.
 
-This module decorates the AngularJS [$resource](https://docs.angularjs.org/api/ngResource/service/$resource) service so that when creating a resource all actions are wrapped in a retry function that will retry any failed http calls. To get started follow the installation instructios below and then have a read through the confuguration notes. Or clone this repo and try out the demo.
+This module decorates the AngularJS [$resource](https://docs.angularjs.org/api/ngResource/service/$resource) service so that when creating a resource all actions are wrapped in a function that will retry any failed http calls. To get started follow the installation instructions below and then have a read through the configuration notes. You can also clone this repo and try out the demo.
 
 ###installation
 
