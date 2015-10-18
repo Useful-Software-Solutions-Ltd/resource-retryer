@@ -25,6 +25,9 @@
     },
     "angularjs/angular-mocks.d.ts": {
       "commit": "284c2b8828f06bdde1f949a22ad174f5221d57f9"
+    },
+    "assertion-error/assertion-error.d.ts": {
+      "commit": "3a6e1b8988eba0ba74fe4db20c950242552857e2"
     }
   }
 }
