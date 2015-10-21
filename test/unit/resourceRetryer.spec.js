@@ -141,7 +141,7 @@ describe('resourceRetryer', function () {
 				successCalled = sinon.spy();
 
 			resource.get().$promise
-					.then(successCalled, function () { });
+				.then(successCalled, function () { });
 
 			$httpBackend.flush();
 
@@ -190,7 +190,7 @@ describe('resourceRetryer', function () {
 
 			expect(result.message).toBe("todo bien");
 		}));
-				
+
 		it('should call action with supplied body', inject(function ($resource) {
 			var postBody = { message: "hola" },
 				params = { id: 99 },
@@ -215,15 +215,15 @@ describe('resourceRetryer', function () {
 			expect(postData).toBe('{"message":"hola"}');
 		}));
 
-		it('should wrap custom actions', inject(function ($resource) {			
+		it('should wrap custom actions', inject(function ($resource) {
 			var Resource = $resource('api/test', null, {
-				'customGet': { method: 'GET', url: 'api/test'}
+				'customGet': { method: 'GET', url: 'api/test' }
 			}, { retry: retryOptions });
 
 			var result = Resource.customGet({}, function (a, b) {
-					
-				});
-			
+
+			});
+
 			$httpBackend.flush();
 
 			expect(requestCounter).toEqual(5);
@@ -261,12 +261,12 @@ describe('resourceRetryer', function () {
 
 			expect(results).toEqual([5, 5]);
 		}));
-		
+
 		it('should on a single try return a resource which also has retry wrapped actions', inject(function ($resource) {
 			//get a result an then check result.$get retries as well
 			var Resource = $resource('api/test', null, null, { retry: retryOptions }),
 				results = [];
-				
+
 			respondSuccessAfter = 1;
 
 			Resource.get({}, function (a, b) {
@@ -284,13 +284,13 @@ describe('resourceRetryer', function () {
 
 			expect(results).toEqual([1, 5]);
 		}));
-		
+
 		it('should when isArray = true, on multiple retries return an array of resources which also have retry wrapped actions', inject(function ($resource) {
 			//get a result an then check result.$get retries as well
 			var Resource = $resource('api/test', null, null, { retry: retryOptions }),
 				results = [];
 
-			Resource.query({query: 1}, function (res, b) {			
+			Resource.query({ query: 1 }, function (res, b) {
 				results.push(requestCounter);
 				requestCounter = 0;
 
@@ -304,19 +304,19 @@ describe('resourceRetryer', function () {
 
 			expect(results).toEqual([5, 5]);
 		}));
-		
+
 		it('should when isArray = true, on multiple retries return an array of resources which also have retry wrapped actions', inject(function ($resource) {
 			//get a result an then check result.$get retries as well
 			var Resource = $resource('api/test', null, null, { retry: retryOptions }),
 				results = [];
-				
+
 			respondSuccessAfter = 1;
 
-			Resource.query({query: 1}, function (res, b) {			
+			Resource.query({ query: 1 }, function (res, b) {
 				results.push(requestCounter);
 				requestCounter = 0;
 				respondSuccessAfter = 5;
-				
+
 				res[0].$get({}, function (res) {
 					results.push(requestCounter);
 					requestCounter = 0;
@@ -344,10 +344,38 @@ describe('resourceRetryer', function () {
 
 		it('should return array when isArray=true with direct call on $promise', inject(function ($resource) {
 			//get a result an then check result.$get retries as well
-			var Resource = $resource('api/test', null, null, { retry: retryOptions });				
+			var Resource = $resource('api/test', null, null, { retry: retryOptions });
 
 			var result = Resource.query({ query: 1 }, function (a, b) {
-								
+
+			});
+
+			$httpBackend.flush();
+
+			expect(result.length).toEqual(4);
+		}));
+
+		it('should when isArray = true, return result array on first call success', inject(function ($resource) {
+			var Resource = $resource('api/test', null, null, { retry: retryOptions }),
+				result;
+
+			respondSuccessAfter = 1;
+
+			Resource.query({ query: 1 }, function (res) {
+				result = res;
+			});
+
+			$httpBackend.flush();
+
+			expect(result.length).toEqual(4);
+		}));
+
+		it('should when isArray = true, return result array after n retries', inject(function ($resource) {
+			var Resource = $resource('api/test', null, null, { retry: retryOptions }),
+				result;
+
+			Resource.query({ query: 1 }, function (res) {
+				result = res;
 			});
 
 			$httpBackend.flush();

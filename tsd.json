@@ -8,9 +8,6 @@
     "jasmine/jasmine.d.ts": {
       "commit": "c50b111ded0a3a18b87b5abffea3150d6aca94da"
     },
-    "mocha/mocha.d.ts": {
-      "commit": "c50b111ded0a3a18b87b5abffea3150d6aca94da"
-    },
     "sinon/sinon.d.ts": {
       "commit": "c50b111ded0a3a18b87b5abffea3150d6aca94da"
     },
