@@ -94,8 +94,10 @@
                         //this needs to handle result being an array
                         if (angular.isArray(result)) {
                             result.forEach(function (resultItem, i) {
-                                wrapActions(resultItem, null, retryOptions);
-                                returnObject.push(resultItem);                               
+                                wrapActions(resultItem, null, retryOptions);                                  
+                                if(returnObject.indexOf(resultItem) === -1){
+                                    returnObject.push(resultItem);   
+                                }                               
                             })
                         } else if (result !== returnObject) {
                             for (var prop in result) {
