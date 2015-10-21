@@ -1,6 +1,6 @@
 {
   "name": "angular-resource-retryer",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Easily retry failed REST API calls with $resource in AngularJS",
   "authors": [
     "JayChase <JonathanChase@outlook.com>",
