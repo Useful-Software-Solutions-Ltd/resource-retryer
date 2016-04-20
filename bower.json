@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/Useful-Software-Solutions-Ltd/resource-retryer.git"
   },
-  "main": "./dist/resource-retryer.js",
+  "main": "./dist/resourceRetryer.module.js",
   "moduleType": [
     "amd"
   ],
