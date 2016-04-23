@@ -11,7 +11,7 @@
     function resourceDecorator($delegate, $q, $timeout){
         var defaultActions = ['get', 'save', 'query', 'remove', 'delete'],
             defaults = {
-                                strategy: 'progressiveBackSOff',
+                                strategy: 'progressiveBackOff',
                                 minWait: 50,
                                 maxWait: 500,
                                 retries: 5,
